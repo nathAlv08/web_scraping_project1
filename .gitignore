@@ -1,0 +1,19 @@
+# File Konfigurasi Rahasia
+.env
+google-sheets-api.json
+
+# Folder cache Python
+__pycache__/
+*.pyc
+
+# Folder cache VS Code (jika ada)
+.vscode/
+
+# Folder cache Pytest
+.pytest_cache/
+
+# Laporan coverage
+.coverage
+
+# File output data
+products.csv

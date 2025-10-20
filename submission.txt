@@ -1,0 +1,13 @@
+# submission.txt
+
+# Cara menjalankan skrip ETL pipeline
+python main.py
+
+# Cara menjalankan unit test pada folder tests
+pytest tests
+
+# Cara menjalankan test coverage untuk folder utils
+pytest --cov=utils
+
+# Url Google Sheets: 
+https://docs.google.com/spreadsheets/d/1ZyjtcGgJtr49-9Ori9KMnCF_fXluEnq-_GNYUCriubg/edit?usp=sharing
