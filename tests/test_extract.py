@@ -1,133 +1,93 @@
 import pytest
 import requests_mock
 import pandas as pd
-from utils.extract import extract_data, scrape_product_details
+from utils.extract import extract_data
 from datetime import datetime
 
-MOCK_SHOP_PAGE_HTML = """
+MOCK_HOME_PAGE_HTML = """
 <html><body>
-    <li class="product">
-        <h2 class="woocommerce-loop-product__title">
-            <a href="https://fashion-studio.dicoding.dev/index.php/product/product-1/">Product 1</a>
-        </h2>
-    </li>
-    <li class="product">
-        <h2 class="woocommerce-loop-product__title">
-            <a href="https://fashion-studio.dicoding.dev/index.php/product/product-2/">Product 2</a>
-        </h2>
-    </li>
+    <h1>Halaman Utama</h1>
 </body></html>
 """
 
-MOCK_PRODUCT_1_HTML = """
+MOCK_PAGE_2_HTML = """
 <html><body>
-    <h1 class="product_title">Product 1</h1>
-    <p class="price">$50.00</p>
-    <div class="star-rating" aria-label="Rated 4.50 out of 5"></div>
-    <table class="woocommerce-product-attributes">
-        <tr><th class="woocommerce-product-attributes-item__label">Color</th>
-            <td class="woocommerce-product-attributes-item__value">Blue, Red</td></tr>
-        <tr><th class="woocommerce-product-attributes-item__label">Size</th>
-            <td class="woocommerce-product-attributes-item__value">M, L</td></tr>
-        <tr><th class="woocommerce-product-attributes-item__label">Gender</th>
-            <td class="woocommerce-product-attributes-item__value">Men</td></tr>
-    </table>
+    <div class="collection-card">
+        <div class="product-details">
+            <h3 class="product-title">T-shirt 2</h3>
+            <div class="price-container">$102.15</div>
+            <p style="font-size: 14px;">Rating: ⭐ 3.9 / 5</p>
+            <p style="font-size: 14px;">3 Colors</p>
+            <p style="font-size: 14px;">Size: M,</p>
+            <p style="font-size: 14px;">Gender: Women,</p>
+        </div>
+    </div>
+    <div class="collection-card">
+        <div class="product-details">
+            <h3 class="product-title">Hoodie 3</h3>
+            <div class="price-container">$496.88</div>
+            <p style="font-size: 14px;">Rating: ⭐ 4.8 / 5</p>
+            <p style="font-size: 14px;">3 Colors</p>
+            <p style="font-size: 14px;">Size: L,</p>
+            <p style="font-size: 14px;">Gender: Unisex,</p>
+        </div>
+    </div>
 </body></html>
 """
 
-MOCK_PRODUCT_2_HTML_INVALID = """
+MOCK_PAGE_3_HTML = """
 <html><body>
-    <h1 class="product_title">Unknown Product</h1>
-    <p class="price">Price Unavailable</p>
-    <div class="star-rating">Invalid Rating</div>
-    <table class="woocommerce-product-attributes">
-        <tr><th class="woocommerce-product-attributes-item__label">Color</th>
-            <td class="woocommerce-product-attributes-item__value">N/A</td></tr>
-        <tr><th class="woocommerce-product-attributes-item__label">Size</th>
-            <td class="woocommerce-product-attributes-item__value">N/A</td></tr>
-        <tr><th class="woocommerce-product-attributes-item__label">Gender</th>
-            <td class="woocommerce-product-attributes-item__value">N/A</td></tr>
-    </table>
+    <h1>Tidak ada produk</h1>
 </body></html>
 """
-
-MOCK_PRODUCT_3_HTML_NO_INFO = """
-<html><body>
-    <h1 class="product_title">Product 3</h1>
-    <p class="price">$100.00</p>
-    <div class="star-rating" aria-label="Rated 5.00 out of 5"></div>
-</body></html>
-"""
-
-
-def test_scrape_product_details_success(requests_mock):
-    """Test scraping detail produk yang sukses."""
-    url = "https://fashion-studio.dicoding.dev/index.php/product/product-1/"
-    requests_mock.get(url, text=MOCK_PRODUCT_1_HTML)
-    
-    data = scrape_product_details(url)
-    
-    assert data is not None
-    assert data['Title'] == 'Product 1'
-    assert data['Price'] == '$50.00'
-    assert data['Rating'] == '4.50'
-    assert data['Colors'] == 'Blue, Red'
-    assert data['Size'] == 'M, L'
-    assert data['Gender'] == 'Men'
-
-def test_scrape_product_details_invalid(requests_mock):
-    """Test scraping produk dengan data invalid."""
-    url = "https://fashion-studio.dicoding.dev/index.php/product/product-2/"
-    requests_mock.get(url, text=MOCK_PRODUCT_2_HTML_INVALID)
-    
-    data = scrape_product_details(url)
-    
-    assert data is not None
-    assert data['Title'] == 'Unknown Product'
-    assert data['Price'] == 'Price Unavailable'
-    assert data['Rating'] == 'Invalid Rating'
-    assert data['Colors'] == 'N/A'
-
-def test_scrape_product_details_no_info_table(requests_mock):
-    """Test scraping produk tanpa tabel informasi tambahan."""
-    url = "https://fashion-studio.dicoding.dev/index.php/product/product-3/"
-    requests_mock.get(url, text=MOCK_PRODUCT_3_HTML_NO_INFO)
-    
-    data = scrape_product_details(url)
-    
-    assert data is not None
-    assert data['Title'] == 'Product 3'
-    assert data['Price'] == '$100.00'
-    assert data['Rating'] == '5.00'
-    assert data['Colors'] == 'N/A' 
-    assert data['Size'] == 'N/A' 
-    assert data['Gender'] == 'N/A' 
-
-def test_scrape_product_details_request_failure(requests_mock):
-    """Test kegagalan request (misal 404)."""
-    url = "https://fashion-studio.dicoding.dev/index.php/product/fail/"
-    requests_mock.get(url, status_code=404)
-    
-    data = scrape_product_details(url)
-    assert data is None
 
 def test_extract_data(requests_mock):
     """Test fungsi extract_data (integrasi)."""
     base_url = "https://fashion-studio.dicoding.dev"
-    shop_url = f"{base_url}/index.php/shop/page/1/"
-    prod1_url = "https://fashion-studio.dicoding.dev/index.php/product/product-1/"
-    prod2_url = "https://fashion-studio.dicoding.dev/index.php/product/product-2/"
-    
-    requests_mock.get(shop_url, text=MOCK_SHOP_PAGE_HTML)
-    requests_mock.get(f"{base_url}/index.php/shop/page/2/", text="<html></html>")
-    
-    requests_mock.get(prod1_url, text=MOCK_PRODUCT_1_HTML)
-    requests_mock.get(prod2_url, text=MOCK_PRODUCT_2_HTML_INVALID)
-    
-    df = extract_data(base_url, total_pages=2)
+
+    requests_mock.get(f"{base_url}/", text=MOCK_HOME_PAGE_HTML)
+
+    requests_mock.get(f"{base_url}/page2", text=MOCK_PAGE_2_HTML)
+
+    requests_mock.get(f"{base_url}/page3", text=MOCK_PAGE_3_HTML)
+
+    df = extract_data(base_url, total_pages=3)
     
     assert isinstance(df, pd.DataFrame)
     assert len(df) == 2
     assert 'timestamp' in df.columns
-    assert df.loc[0, 'Title'] == 'Product 1'
-    assert df.loc[1, 'Title'] == 'Unknown Product'
+    
+
+    assert df.loc[0, 'Title'] == 'T-shirt 2'
+    assert df.loc[0, 'Price'] == '$102.15'
+    assert df.loc[0, 'Rating'] == 'Rating: ⭐ 3.9 / 5'
+    assert df.loc[0, 'Colors'] == '3 Colors'
+    assert df.loc[0, 'Size'] == 'Size: M,'
+    assert df.loc[0, 'Gender'] == 'Gender: Women,'
+
+
+    assert df.loc[1, 'Title'] == 'Hoodie 3'
+    assert df.loc[1, 'Price'] == '$496.88'
+
+def test_extract_data_stop_on_404(requests_mock):
+    """Test bahwa ekstraksi berhenti jika halaman 404."""
+    base_url = "https://fashion-studio.dicoding.dev"
+    
+
+    requests_mock.get(f"{base_url}/", text=MOCK_HOME_PAGE_HTML)
+    requests_mock.get(f"{base_url}/page2", status_code=404)
+    requests_mock.get(f"{base_url}/page3", text=MOCK_PAGE_2_HTML)
+
+
+    df = extract_data(base_url, total_pages=3)
+    
+    assert df.empty 
+
+def test_extract_data_no_data(requests_mock):
+    """Test jika tidak ada data sama sekali."""
+    base_url = "https://fashion-studio.dicoding.dev"
+    requests_mock.get(f"{base_url}/", text=MOCK_HOME_PAGE_HTML)
+    requests_mock.get(f"{base_url}/page2", text=MOCK_PAGE_3_HTML)
+
+    df = extract_data(base_url, total_pages=2)
+    assert df.empty

@@ -1,4 +1,5 @@
 import requests
+from requests.exceptions import HTTPError  
 from bs4 import BeautifulSoup
 import pandas as pd
 from datetime import datetime
@@ -17,7 +18,7 @@ def extract_data(base_url: str, total_pages: int = 50) -> pd.DataFrame:
     logging.info(f"Memulai ekstraksi data dari {base_url} untuk {total_pages} halaman.")
     
     for page in range(1, total_pages + 1):
-        
+
         if page == 1:
             shop_url = f"{base_url}/"
         else:
@@ -61,13 +62,13 @@ def extract_data(base_url: str, total_pages: int = 50) -> pd.DataFrame:
                     for p in p_tags:
                         text = p.get_text(strip=True)
                         if text.startswith('Rating:'):
-                            rating_raw = text 
+                            rating_raw = text
                         elif 'Colors' in text and text.endswith('Colors'):
-                            colors_raw = text 
+                            colors_raw = text
                         elif text.startswith('Size:'):
-                            size_raw = text 
+                            size_raw = text
                         elif text.startswith('Gender:'):
-                            gender_raw = text 
+                            gender_raw = text
 
                 all_products.append({
                     'Title': title,
@@ -78,12 +79,15 @@ def extract_data(base_url: str, total_pages: int = 50) -> pd.DataFrame:
                     'Gender': gender_raw,
                     'timestamp': extraction_timestamp
                 })
-                        
-        except requests.RequestException as e:
-            if e.response and e.response.status_code == 404:
+
+        except HTTPError as e:
+            if e.response.status_code == 404:
                 logging.warning(f"Halaman {page} tidak ditemukan (404). Berhenti.")
-                break
-            logging.error(f"Gagal mengambil halaman {page}: {e}")
+                break  
+                logging.error(f"HTTP Error Gagal mengambil halaman {page}: {e}")
+                continue
+        except requests.RequestException as e:
+            logging.error(f"Request Gagal mengambil halaman {page}: {e}")
             continue 
         except Exception as e:
             logging.error(f"Error tidak terduga saat parsing halaman {page}: {e}")

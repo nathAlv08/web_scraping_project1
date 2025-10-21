@@ -1,5 +1,3 @@
-# submission.txt
-
 # Cara menjalankan skrip ETL pipeline
 python main.py
 
@@ -11,3 +9,11 @@ pytest --cov=utils
 
 # Url Google Sheets: 
 https://docs.google.com/spreadsheets/d/1ZyjtcGgJtr49-9Ori9KMnCF_fXluEnq-_GNYUCriubg/edit?usp=sharing
+
+# Catatan untuk Reviewer
+
+Proyek ini memerlukan file kredensial .env dan google-sheets-api.json untuk bisa terhubung ke database dan Google Sheets.
+
+Pastikan file-file tersebut ada di root folder sebelum menjalankan.
+
+Tidak ada langkah khusus lainnya, skrip bisa langsung dijalankan. Terima Kasih

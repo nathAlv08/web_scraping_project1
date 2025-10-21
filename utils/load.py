@@ -11,21 +11,21 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 def load_to_csv(df: pd.DataFrame, file_path: str) -> None:
     """
-    Menyimpan DataFrame ke file CSV. (Kriteria 2 - Basic)
+    Menyimpan DataFrame ke file CSV.
     
     Args:
         df (pd.DataFrame): DataFrame bersih.
         file_path (str): Lokasi file CSV output.
     """
     try:
-        df.to_csv(file_path, index=False, encoding='utf-8')
+        df.to_csv(file_path, index=False, encoding='utf-8', date_format='%Y-%m-%d %H:%M:%S')
         logging.info(f"Data berhasil disimpan ke CSV: {file_path}")
     except (IOError, OSError) as e:
         logging.error(f"Gagal menyimpan ke CSV {file_path}: {e}")
         
 def load_to_gdrive(df: pd.DataFrame, sheet_id: str, creds_path: str) -> None:
     """
-    Mengupload DataFrame ke Google Sheets. (Kriteria 2 - Skilled/Advanced)
+    Mengupload DataFrame ke Google Sheets.
     
     Args:
         df (pd.DataFrame): DataFrame bersih.
@@ -42,21 +42,21 @@ def load_to_gdrive(df: pd.DataFrame, sheet_id: str, creds_path: str) -> None:
         service = build('sheets', 'v4', credentials=creds)
 
         df_gdrive = df.copy()
-        df_gdrive['timestamp'] = df_gdrive['timestamp'].astype(str)
+        df_gdrive['timestamp'] = df_gdrive['timestamp'].dt.strftime('%Y-%m-%d %H:%M:%S')
         
         values = [df_gdrive.columns.tolist()] + df_gdrive.values.tolist()
         
         body = {
             'values': values
         }
-
+        
         range_name = 'Sheet1!A1'
-
+        
         service.spreadsheets().values().clear(
             spreadsheetId=sheet_id,
             range='Sheet1'
         ).execute()
-
+        
         service.spreadsheets().values().update(
             spreadsheetId=sheet_id,
             range=range_name,
@@ -73,7 +73,7 @@ def load_to_gdrive(df: pd.DataFrame, sheet_id: str, creds_path: str) -> None:
 
 def load_to_postgres(df: pd.DataFrame, db_url: str, table_name: str) -> None:
     """
-    Menyimpan DataFrame ke database PostgreSQL. (Kriteria 2 - Skilled/Advanced)
+    Menyimpan DataFrame ke database PostgreSQL.
     
     Args:
         df (pd.DataFrame): DataFrame bersih.
@@ -83,7 +83,6 @@ def load_to_postgres(df: pd.DataFrame, db_url: str, table_name: str) -> None:
     try:
         engine = create_engine(db_url)
         with engine.connect() as connection:
-            
             df.to_sql(table_name, connection, if_exists='replace', index=False)
             logging.info(f"Data berhasil disimpan ke PostgreSQL, tabel: {table_name}")
             
